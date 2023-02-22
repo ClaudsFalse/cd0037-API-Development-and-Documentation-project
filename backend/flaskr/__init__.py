@@ -8,6 +8,15 @@ from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
+def paginate_questions(request, selection):
+    page = request.args.get('page', 1, type=int)
+    start = (page -1) * QUESTIONS_PER_PAGE
+    end = start + QUESTIONS_PER_PAGE
+
+    questions = [question.format() for question in selection]
+    current_questions = questions[start:end]
+    return current_questions
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
@@ -16,35 +25,60 @@ def create_app(test_config=None):
     Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
     """
     # resources is an object where keys are uris for a given resource. 
-    cors = CORS(app, resources={r"/*": {"origins": "*"}})
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
     """
     Use the after_request decorator to set Access-Control-Allow
     """
     @app.after_request
     def after_request(response):
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, true')
         response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
-
+        return response
     """
     @TODO:
     Create an endpoint to handle GET requests
     for all available categories.
     """
+    @app.route('/categories')
+    def get_all_categories():
+        # query the database for all category objects 
+        categories = Category.query.all()
+        # create and populate a categories dictionary as required by the frontend
+        categories_dict = {}
+        for category in categories:
+            categories_dict[category.id] = category.type
 
+        return jsonify({
+            'success': True,
+            'categories': categories_dict
+            })
 
-    """
-    @TODO:
-    Create an endpoint to handle GET requests for questions,
-    including pagination (every 10 questions).
-    This endpoint should return a list of questions,
-    number of total questions, current category, categories.
+    @app.route('/questions')
+    def get_questions():
+        '''
+        At this url, the frontend requires:
+         * questions (paginated)
+         * total_questions 
+         * categories
+         * current_category
+        '''
+        selection = Question.query.order_by(Question.id).all()
+        questions = paginate_questions(request, selection)
+        categories = Category.query.all()
 
-    TEST: At this point, when you start the application
-    you should see questions and categories generated,
-    ten questions per page and pagination at the bottom of the screen for three pages.
-    Clicking on the page numbers should update the questions.
-    """
+        # handle the case where there are no questions
+        if len(questions) == 0:
+            abort(404)
+       
+        return jsonify({
+            'success': True,
+            'questions': questions,
+            'total_questions': len(selection),
+            'categories': {category.id: category.type for category in categories},
+            'current_category' : ""
+
+        })
 
     """
     @TODO:
