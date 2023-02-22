@@ -112,7 +112,7 @@ def create_app(test_config=None):
     of the questions list in the "List" tab.
     """
 
-    @app.route('/questions', methods=['POST'])
+    @app.route('/questions/add', methods=['POST'])
     def add_question():
         body = request.get_json()
         new_question = body.get('question', None)
