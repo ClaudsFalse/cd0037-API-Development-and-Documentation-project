@@ -112,6 +112,31 @@ def create_app(test_config=None):
     of the questions list in the "List" tab.
     """
 
+    @app.route('/questions', methods=['POST'])
+    def add_question():
+        body = request.get_json()
+        new_question = body.get('question', None)
+        new_answer = body.get('answer', None)
+        new_difficulty = body.get('difficulty', None)
+        new_category = body.get('category', None)
+
+        try:
+            question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
+            question.insert()
+            selection = Question.query.order_by(Question.id).all()
+            questions = paginate_questions(request, selection)
+            categories = Category.query.all()
+            return jsonify({
+                'success': True,
+                'questions': questions,
+                'total_questions': len(selection),
+                'categories': {category.id: category.type for category in categories},
+                'current_category' : ""
+            })
+        except Exception as e:
+            print(e.message, e.args)
+            abort(422)
+
     """
     @TODO:
     Create a POST endpoint to get questions based on a search term.
