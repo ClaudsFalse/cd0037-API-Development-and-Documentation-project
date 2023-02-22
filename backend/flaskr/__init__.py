@@ -35,11 +35,7 @@ def create_app(test_config=None):
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, true')
         response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
         return response
-    """
-    @TODO:
-    Create an endpoint to handle GET requests
-    for all available categories.
-    """
+    
     @app.route('/categories')
     def get_all_categories():
         # query the database for all category objects 
@@ -80,13 +76,30 @@ def create_app(test_config=None):
 
         })
 
-    """
-    @TODO:
-    Create an endpoint to DELETE question using a question ID.
+    @app.route('/questions/<int:question_id>', methods=['DELETE'])
+    def delete_question(question_id):
+        try:
+            question = Question.query.filter(Question.id == question_id).one_or_none()
+            
+            if question is None:
+                abort(404)
+            question.delete()
+            print("deleted")
+            selection = Question.query.order_by(Question.id).all()
+            questions = paginate_questions(request, selection)
+            categories = Category.query.all()
+            return jsonify({
+                'success': True,
+                'deleted': question_id,
+                'questions': questions,
+                'total_questions': len(selection),
+                'categories': {category.id: category.type for category in categories},
+                'current_category' : ""
+            })
+        except:
+            abort(404)
 
-    TEST: When you click the trash icon next to a question, the question will be removed.
-    This removal will persist in the database and when you refresh the page.
-    """
+
 
     """
     @TODO:
