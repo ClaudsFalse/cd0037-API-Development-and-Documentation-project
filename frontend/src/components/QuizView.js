@@ -49,7 +49,7 @@ class QuizView extends Component {
     }
 
     $.ajax({
-      url: '/quizzes', //TODO: update request URL maybe: /quiz/<int:category_id>/questions
+      url: '/quizzes', 
       type: 'POST',
       dataType: 'json',
       contentType: 'application/json',

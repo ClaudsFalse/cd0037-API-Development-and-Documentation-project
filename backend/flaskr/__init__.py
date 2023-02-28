@@ -22,7 +22,7 @@ def create_app(test_config=None):
     app = Flask(__name__)
     setup_db(app)
     """
-    Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+    Set up CORS. Allow '*' for origins. 
     """
     # resources is an object where keys are uris for a given resource. 
     CORS(app, resources={r"/*": {"origins": "*"}})
@@ -82,7 +82,7 @@ def create_app(test_config=None):
             question = Question.query.filter(Question.id == question_id).one_or_none()
             
             if question is None:
-                abort(404)
+                abort(422)
             question.delete()
             print("deleted")
             selection = Question.query.order_by(Question.id).all()
@@ -97,7 +97,7 @@ def create_app(test_config=None):
                 'current_category' : ""
             })
         except:
-            abort(404)
+            abort(422)
 
     @app.route('/questions/add', methods=['POST'])
     def add_question():
