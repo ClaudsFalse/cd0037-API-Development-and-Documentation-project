@@ -177,27 +177,29 @@ def create_app(test_config=None):
     @app.route('/quizzes', methods=['POST'])
     def start_quiz():
         body = request.get_json()
-        
         try:
             previous_questions = body.get('previous_questions')
             quiz_category = body.get('quiz_category')['id']
             # if user presses on "all" it is read as category id == 0
             if quiz_category == 0:
                 questions = Question.query.filter(Question.id.notin_(previous_questions)).all()
+
             else:
                 questions = Question.query.filter(Question.id.notin_(previous_questions),Question.category == quiz_category).all()
-            random_idx = random.randrange(0, len(questions))
-            current_question = questions[random_idx].format()
+            
             # when we run out of questions
             if len(questions) == 0:
                 current_question = None
-
+            else:
+                random_idx = random.randrange(0, len(questions))
+                current_question = questions[random_idx].format()
             return jsonify({
               'success':True,
               'question':current_question,
               'total_questions' : len(questions),
               })
         except Exception as e:
+            print(e)
             abort(400)
             
             

@@ -48,36 +48,13 @@ flask run --reload
 
 The `--reload` flag will detect file changes and restart the server automatically.
 
-## To Do Tasks
 
-These are the files you'd want to edit in the backend:
+## Endpoints Documentation
 
-1. `backend/flaskr/__init__.py`
-2. `backend/test_flaskr.py`
-
-One note before you delve into your tasks: for each endpoint, you are expected to define the endpoint and response data. The frontend will be a plentiful resource because it is set up to expect certain endpoints and response data formats already. You should feel free to specify endpoints in your own way; if you do so, make sure to update the frontend or you will get some unexpected behavior.
-
-1. Use Flask-CORS to enable cross-domain requests and set response headers.
-2. Create an endpoint to handle `GET` requests for questions, including pagination (every 10 questions). This endpoint should return a list of questions, number of total questions, current category, categories.
-3. Create an endpoint to handle `GET` requests for all available categories.
-4. Create an endpoint to `DELETE` a question using a question `ID`.
-5. Create an endpoint to `POST` a new question, which will require the question and answer text, category, and difficulty score.
-6. Create a `POST` endpoint to get questions based on category.
-7. Create a `POST` endpoint to get questions based on a search term. It should return any questions for whom the search term is a substring of the question.
-8. Create a `POST` endpoint to get questions to play the quiz. This endpoint should take a category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions.
-9. Create error handlers for all expected errors including 400, 404, 422, and 500.
-
-## Documenting your Endpoints
-
-You will need to provide detailed documentation of your API endpoints including the URL, request parameters, and the response body. Use the example below as a reference.
-
-### Documentation Example
-
-`GET '/api/v1.0/categories'`
-
-- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
+`GET '/categories'`
+- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding name of the category
 - Request Arguments: None
-- Returns: An object with a single key, `categories`, that contains an object of `id: category_string` key: value pairs.
+- Returns: a json object with the success key, and another key: `categories`, that contains an object of `id: category_string` key: value pairs.
 
 ```json
 {
@@ -90,9 +67,72 @@ You will need to provide detailed documentation of your API endpoints including 
 }
 ```
 
-## Testing
+`GET '/categories/<int:category_id>/questions'`
+- Fetches questions filtered by a chosen category
+- Request Arguments: Category id of the category chosen
+- Returns: a json object with the success key, and 4 more keys:
 
-Write at least one test for the success and at least one error behavior of each endpoint using the unittest library.
+    1. questions: paginated questions, in this case 10 per page. 
+    2. total_questions: total amount of questions in the database. 
+    3. categories: a dictionary of all categories with key-value pairs being the category unique id and its name. 
+    4. current_category: set as an empty string.  
+
+
+
+`GET '/questions'`
+- Fetches a list of all question objects present in the database.
+- Request Arguments: None
+- Returns: a json object with the success value and 4 more keys:
+
+    1. questions: paginated questions, in this case 10 per page. 
+    2. total_questions: total amount of questions in the database. 
+    3. categories: a dictionary of all categories with key-value pairs being the category unique id and its name. 
+    4. current_category: set as an empty string. 
+
+`DELETE '/questions/<int:question_id>'`
+- Deletes a question from the database based on its id.
+- Request Arguments: question id.
+- Returns: a json object with the success value and 5 more keys:
+    1. questions: paginated questions, in this case 10 per page. 
+    2. total_questions: total amount of questions in the database. 
+    3. categories: a dictionary of all categories with key-value pairs being the category unique id and its name. 
+    4. current_category: set as an empty string. 
+    5. deleted: the question id of the deleted question 
+
+`POST '/questions/add'`
+- Adds a question on the database based on user inputted data. 
+- Request Arguments: 
+    * question: the question text
+    * answer: the answer to the question
+    * difficulty: the question's difficulty
+    * category: which category the question belongs to
+
+- Returns: a json object with the success value and 4 more keys:
+    1. questions: paginated questions, in this case 10 per page. 
+    2. total_questions: total amount of questions in the database. 
+    3. categories: a dictionary of all categories with key-value pairs being the category unique id and its name. 
+    4. current_category: set as an empty string. 
+
+`POST '/questions/search'`
+- Fetches questions based on partial matches with a given search term. 
+- Request Arguments: the search term ('searchTerm')
+- Returns: a json object with 4 keys:
+    1. questions: paginated questions, in this case 10 per page. 
+    2. total_questions: total amount of questions in the database. 
+    3. categories: a dictionary of all categories with key-value pairs being the category unique id and its name. 
+    4. current_category: set as an empty string. 
+
+`GET '/quizzes'`
+- Fetches a question at a time to let the user play the game.
+- Request Arguments: 
+    * previous_questions = ids of previously shown questions so that user doesn't see repeats. 
+    * quiz_category = if they chose it, users will only see questions of a chosen category. 
+- Returns: a json object with the success value and 2 more keys:
+
+    1. question: the current question
+    2. total_questions: total amount of questions in the database. 
+
+## Testing
 
 To deploy the tests, run
 
