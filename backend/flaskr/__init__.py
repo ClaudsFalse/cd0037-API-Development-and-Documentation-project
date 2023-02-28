@@ -99,19 +99,6 @@ def create_app(test_config=None):
         except:
             abort(404)
 
-
-
-    """
-    @TODO:
-    Create an endpoint to POST a new question,
-    which will require the question and answer text,
-    category, and difficulty score.
-
-    TEST: When you submit a question on the "Add" tab,
-    the form will clear and the question will appear at the end of the last page
-    of the questions list in the "List" tab.
-    """
-
     @app.route('/questions/add', methods=['POST'])
     def add_question():
         body = request.get_json()
@@ -142,7 +129,7 @@ def create_app(test_config=None):
         body = request.get_json()
         search_term = body.get('searchTerm', None)
         if search_term:
-            print(search_term)
+   
             questions = Question.query.filter(Question.question.ilike(f'%{search_term}%')).all()
             formatted_questions = paginate_questions(request, questions)
             categories = Category.query.all()
@@ -171,6 +158,30 @@ def create_app(test_config=None):
     categories in the left column will cause only questions of that
     category to be shown.
     """
+
+    @app.route('/categories/<int:category_id>/questions')
+    def get_questions_by_category(category_id):
+        
+        try:
+            selection = Question.query.filter_by(category=category_id).order_by(Question.id).all()
+            if selection is None:
+                abort(404)
+            questions = paginate_questions(request, selection)
+            categories = Category.query.all()
+            return jsonify({
+                'success': True,
+                'questions': questions,
+                'total_questions': len(selection),
+                'categories': {category.id: category.type for category in categories},
+                'current_category' : ""
+            })
+        except Exception as e:
+            print(e, e.args)
+            abort(422)
+            
+
+
+
 
     """
     @TODO:
