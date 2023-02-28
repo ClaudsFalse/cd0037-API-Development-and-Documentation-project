@@ -177,21 +177,19 @@ def create_app(test_config=None):
     @app.route('/quizzes', methods=['POST'])
     def start_quiz():
         body = request.get_json()
+        
         try:
-            
             previous_questions = body.get('previous_questions')
             quiz_category = body.get('quiz_category')['id']
-            if previous_questions is None:
-                abort(404)
-            questions = Question.query.filter(Question.id.notin_(previous_questions),Question.category == quiz_category).all()
-            
-
-            # need to handle event when we run out of questions in a certain category.
-            if len(questions) > 0:
-                random_idx = random.randrange(0, len(questions))
-                current_question = questions[random_idx].format()
-            # when we run out of questions in a certain category
+            # if user presses on "all" it is read as category id == 0
+            if quiz_category == 0:
+                questions = Question.query.filter(Question.id.notin_(previous_questions)).all()
             else:
+                questions = Question.query.filter(Question.id.notin_(previous_questions),Question.category == quiz_category).all()
+            random_idx = random.randrange(0, len(questions))
+            current_question = questions[random_idx].format()
+            # when we run out of questions
+            if len(questions) == 0:
                 current_question = None
 
             return jsonify({
@@ -219,6 +217,14 @@ def create_app(test_config=None):
         "error": 422,
         "message": "Unprocessable"
         }), 422
+    
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            "success":False,
+            "error":400,
+            "message":"Bad Request"
+        }), 400
     
 
     return app
