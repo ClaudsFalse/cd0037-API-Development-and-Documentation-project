@@ -150,15 +150,7 @@ def create_app(test_config=None):
             'current_category': ""})
 
 
-    """
-    @TODO:
-    Create a GET endpoint to get questions based on category.
-
-    TEST: In the "List" tab / main screen, clicking on one of the
-    categories in the left column will cause only questions of that
-    category to be shown.
-    """
-
+    # endpoint to get questions baded on categories
     @app.route('/categories/<int:category_id>/questions')
     def get_questions_by_category(category_id):
         
@@ -178,22 +170,41 @@ def create_app(test_config=None):
         except Exception as e:
             print(e, e.args)
             abort(422)
+     
+
+ 
+    # post endpoint to play the quiz
+    @app.route('/quizzes', methods=['POST'])
+    def start_quiz():
+        body = request.get_json()
+        try:
+            
+            previous_questions = body.get('previous_questions')
+            quiz_category = body.get('quiz_category')['id']
+            if previous_questions is None:
+                abort(404)
+            questions = Question.query.filter(Question.id.notin_(previous_questions),Question.category == quiz_category).all()
             
 
+            # need to handle event when we run out of questions in a certain category.
+            if len(questions) > 0:
+                random_idx = random.randrange(0, len(questions))
+                current_question = questions[random_idx].format()
+            # when we run out of questions in a certain category
+            else:
+                current_question = None
 
+            return jsonify({
+              'success':True,
+              'question':current_question,
+              'total_questions' : len(questions),
+              })
+        except Exception as e:
+            abort(400)
+            
+            
+            
 
-
-    """
-    @TODO:
-    Create a POST endpoint to get questions to play the quiz.
-    This endpoint should take category and previous question parameters
-    and return a random questions within the given category,
-    if provided, and that is not one of the previous questions.
-
-    TEST: In the "Play" tab, after a user selects "All" or a category,
-    one question at a time is displayed, the user is allowed to answer
-    and shown whether they were correct or not.
-    """
 
     """
     @TODO:
