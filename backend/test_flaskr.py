@@ -217,20 +217,6 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'Bad request')
 
-        '''
-        
-test_get_categories failure scenario ✅
-test_get_questions_no_page failure scenario ✅
-test_delete_question success scenario ✅
-test_add_question success and failure scenario ✅
-test_search_questions success and failure scenario ✅
-test_get_questions_by_category success and failure scenario ✅
-test_play_quiz success and failure scenario
-        
-        
-        
-        '''
-
 
 
 # Make the tests conveniently executable
