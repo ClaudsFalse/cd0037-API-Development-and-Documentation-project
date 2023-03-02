@@ -40,21 +40,26 @@ def create_app(test_config=None):
                              'GET, POST, PATCH, DELETE, OPTIONS')
         return response
     
-    @app.route('/categories')
+    @app.route('/categories', methods=['GET'])
     def get_all_categories():
         # query the database for all category objects
-        categories = Category.query.all()
-        # create and populate a categories dictionary
-        categories_dict = {}
-        for category in categories:
-            categories_dict[category.id] = category.type
+        try:
+            categories = Category.query.all()
+            if len(categories) == 0:
+                abort(404)
+            # create and populate a categories dictionary
+            categories_dict = {}
+            for category in categories:
+                categories_dict[category.id] = category.type
+            return jsonify({
+                'success': True,
+                'categories': categories_dict
+                })
+        except Exception as e:
+            print(e)
+            abort(500)
 
-        return jsonify({
-            'success': True,
-            'categories': categories_dict
-            })
-
-    @app.route('/questions')
+    @app.route('/questions', methods=['GET'])
     def get_questions():
         '''
         At this url, the frontend requires:
@@ -110,7 +115,8 @@ def create_app(test_config=None):
         new_answer = body.get('answer', None)
         new_difficulty = body.get('difficulty', None)
         new_category = body.get('category', None)
-
+        if len(body) == 0:
+            abort(422)
         try:
             question = Question(question=new_question,
                                 answer=new_answer,
@@ -128,9 +134,10 @@ def create_app(test_config=None):
                                category.type for category in categories},
                 'current_category': ""
             })
+        
         except Exception as e:
             print(e.message, e.args)
-            abort(422)
+            abort(500)
 
     @app.route('/questions/search', methods=['POST'])
     def search_question():
@@ -142,14 +149,17 @@ def create_app(test_config=None):
                 ).all()
             formatted_questions = paginate_questions(request, questions)
             categories = Category.query.all()
-            if questions is None:
+            # throw error 404 if no matching results are found
+            if len(questions) == 0:
                 abort(404)
-            return jsonify({'questions': formatted_questions,
-                            'total_questions': len(Question.query.all()),
-                            'categories': {category.id:
-                                           category.type
-                                           for category in categories},
-                            'current_category': ""})
+            return jsonify({
+                'success': True,
+                'questions': formatted_questions,
+                'total_questions': len(Question.query.all()),
+                'categories': {category.id:
+                               category.type
+                               for category in categories},
+                'current_category': ""})
         else:
             selection = Question.query.order_by(Question.id).all()
             questions = paginate_questions(request, selection)
@@ -169,7 +179,7 @@ def create_app(test_config=None):
             selection = Question.query.filter_by(
                 category=category_id).order_by(
                 Question.id).all()
-            if selection is None:
+            if len(selection) == 0:
                 abort(404)
             questions = paginate_questions(request, selection)
             categories = Category.query.all()
@@ -183,15 +193,17 @@ def create_app(test_config=None):
             })
         except Exception as e:
             print(e, e.args)
-            abort(422)
+            abort(404)
 
     # post endpoint to play the quiz
     @app.route('/quizzes', methods=['POST'])
     def start_quiz():
         body = request.get_json()
+
         try:
             previous_questions = body.get('previous_questions')
             quiz_category = body.get('quiz_category')['id']
+
             # if user presses on "all" it is read as category id == 0
             if quiz_category == 0:
                 questions = Question.query.filter(
@@ -237,6 +249,14 @@ def create_app(test_config=None):
         return jsonify({
             "success": False,
             "error": 400,
-            "message": "Bad Request"
+            "message": "Bad request"
         }), 400
+    
+    @app.errorhandler(405)
+    def bad_request(error):
+        return jsonify({
+            "success": False,
+            "error": 405,
+            "message": "Method not allowed"
+        }), 405
     return app
